@@ -803,6 +803,7 @@ def run_generation(tts_script, data, output_dir, args, tts_backend=None):
     voices = data.get("voices", {"narrator": "mimo_default"})
     styles = data.get("styles", {"narrator": ""})
     chapters = data.get("chapters", [])
+    voice_speed = max(0.5, min(float(getattr(args, "voice_speed", 1.0) or 1.0), 2.0))
 
     os.makedirs(output_dir, exist_ok=True)
     seg_dir = os.path.join(output_dir, "segments")
@@ -852,7 +853,7 @@ def run_generation(tts_script, data, output_dir, args, tts_backend=None):
                 emotion = seg.get("emotion", "neutral")
                 pause_after = seg.get("pause_after", args.pause_ms)
 
-                seg_speed = seg.get("speed", 1.0)
+                seg_speed = max(0.5, min(float(seg.get("speed", 1.0) or 1.0) * voice_speed, 2.0))
                 seg_pitch = seg.get("pitch", 1.0)
                 seg_style_degree = seg.get("style_degree", 1.0)
                 seg_role = seg.get("role", "")
@@ -918,7 +919,7 @@ def run_generation(tts_script, data, output_dir, args, tts_backend=None):
                 pause_after = seg.get("pause_after", args.pause_ms)
 
                 # Edge TTS 扩展参数（per-segment 覆盖）
-                seg_speed = seg.get("speed", 1.0)
+                seg_speed = max(0.5, min(float(seg.get("speed", 1.0) or 1.0) * voice_speed, 2.0))
                 seg_pitch = seg.get("pitch", 1.0)
                 seg_style_degree = seg.get("style_degree", 1.0)
                 seg_role = seg.get("role", "")
@@ -1047,6 +1048,8 @@ def main():
     parser.add_argument("--default-voice", type=str, default="mimo_default", help="默认音色（字幕模式）")
     parser.add_argument("--default-style", type=str, default="", help="默认风格（字幕模式）")
     parser.add_argument("--max-speed", type=float, default=2.0, help="字幕模式最大加速倍率（默认 2.0）")
+    parser.add_argument("--voice-speed", type=float, default=1.0,
+                        help="全局 TTS 语速倍率（0.5-2.0，小说推文建议 1.15-1.30）")
     parser.add_argument("--tts-backend", type=str, default=None,
                         choices=["mimo", "edge"],
                         help="TTS 后端: mimo (MiMo API) 或 edge (Edge TTS)。默认 edge。")
